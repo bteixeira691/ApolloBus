@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroserviceA", "Samples\Ra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroserviceB", "Samples\RabbitMQ\MicroserviceB\MicroserviceB.csproj", "{0BAC1310-1C7B-427B-81FF-F77D960551FE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApolloBus", "EventBus\ApolloBus.csproj", "{138FB115-7F54-4F45-B433-B0AFD410AD50}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApolloBus", "EventBus\ApolloBus.csproj", "{6287C0DB-B675-4AED-95B2-D2A1E0FA2F9F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +41,10 @@ Global
 		{0BAC1310-1C7B-427B-81FF-F77D960551FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0BAC1310-1C7B-427B-81FF-F77D960551FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0BAC1310-1C7B-427B-81FF-F77D960551FE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{138FB115-7F54-4F45-B433-B0AFD410AD50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{138FB115-7F54-4F45-B433-B0AFD410AD50}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{138FB115-7F54-4F45-B433-B0AFD410AD50}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{138FB115-7F54-4F45-B433-B0AFD410AD50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6287C0DB-B675-4AED-95B2-D2A1E0FA2F9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6287C0DB-B675-4AED-95B2-D2A1E0FA2F9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6287C0DB-B675-4AED-95B2-D2A1E0FA2F9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6287C0DB-B675-4AED-95B2-D2A1E0FA2F9F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
