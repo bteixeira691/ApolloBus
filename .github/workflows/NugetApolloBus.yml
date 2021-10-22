@@ -21,7 +21,7 @@ jobs:
     - name: Publish to NuGet
       uses: brandedoutcast/publish-nuget@v2.5.5
       with:
-        PROJECT_FILE_PATH: EventBus/EventBus.csproj
+        PROJECT_FILE_PATH: EventBus/ApolloBus.csproj
         PACKAGE_NAME: ApolloBus
         VERSION_REGEX: '^\s*<Version>(.*)<\/Version>\s*$'
         TAG_FORMAT: '*'
