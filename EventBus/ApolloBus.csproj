@@ -2,7 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.0.1</Version>
+    <Authors>bteixeira691</Authors>
+    <RepositoryUrl>https://github.com/bteixeira691/ApolloBus</RepositoryUrl>
+    <RepositoryType>https://github.com/bteixeira691/ApolloBus</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
   </PropertyGroup>
 
   <ItemGroup>
