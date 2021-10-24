@@ -39,7 +39,7 @@ namespace ApolloBus.Kafka
                 return;
             }
 
-            var eventName = _event.GetType().Name;
+            var eventName = _event.GetType().Name;  
 
             try
             {
