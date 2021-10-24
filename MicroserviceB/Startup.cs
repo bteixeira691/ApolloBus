@@ -1,3 +1,7 @@
+using ApolloBus.InterfacesAbstraction;
+using ApolloBus.ServiceBus;
+using MicroserviceB.Event;
+using MicroserviceB.Handler;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -26,7 +30,8 @@ namespace MicroserviceB
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.AddServiceBus(Configuration);
+            services.AddTransient<EventFromMicroserviceAHandler>();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -54,6 +59,9 @@ namespace MicroserviceB
             {
                 endpoints.MapControllers();
             });
+
+            var ApolloBus = app.ApplicationServices.GetRequiredService<IApolloBus>();
+            ApolloBus.Subscribe<EventFromMicroserviceA, EventFromMicroserviceAHandler>();
         }
     }
 }
