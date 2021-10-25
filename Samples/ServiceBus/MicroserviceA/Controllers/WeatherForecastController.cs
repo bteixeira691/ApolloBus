@@ -26,6 +26,7 @@ namespace MicroserviceA.Controllers
         public WeatherForecastController(ILogger<WeatherForecastController> logger, IApolloBus apolloBus)
         {
             _logger = logger;
+            _apolloBus = apolloBus;
         }
 
         [HttpGet]
@@ -36,6 +37,7 @@ namespace MicroserviceA.Controllers
             var eventq = new EventFromMicroserviceA();
 
             eventq.Name = "teste02";
+
             _apolloBus.Publish(eventq);
 
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
