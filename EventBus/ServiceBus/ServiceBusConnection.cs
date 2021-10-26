@@ -1,4 +1,5 @@
-﻿using Azure.Messaging.ServiceBus;
+﻿using ApolloBus.ServiceBus.Model;
+using Azure.Messaging.ServiceBus;
 using System;
 using System.Collections.Generic;
 using System.Text;

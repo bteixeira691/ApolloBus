@@ -1,5 +1,6 @@
 ﻿using ApolloBus.Events;
 using ApolloBus.InterfacesAbstraction;
+using ApolloBus.RabbitMQ.Model;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Polly;

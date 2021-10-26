@@ -1,4 +1,6 @@
 ﻿using ApolloBus.InterfacesAbstraction;
+using ApolloBus.RabbitMQ.Model;
+using ApolloBus.StartupServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
@@ -6,8 +8,10 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Text;
+
 
 namespace ApolloBus.RabbitMQ
 {
@@ -19,15 +23,30 @@ namespace ApolloBus.RabbitMQ
             var keyValuePairConfig = configuration.GetSection("RabbitMQ:Config").GetChildren();
             var keyValuePairComplementaryConfig = configuration.GetSection("RabbitMQ:ComplementaryConfig").GetChildren();
 
-            ComplementaryConfig complementaryConfig = GetComplementaryConfigValues(keyValuePairComplementaryConfig);
+            ComplementaryConfig complementaryConfig = MappingConfigValues.GetMappingValues<ComplementaryConfig>(keyValuePairComplementaryConfig);
+
+            string complementaryConfigValid = complementaryConfig.IsValid();
+            if (complementaryConfigValid != string.Empty)
+            {
+                Log.Logger.Error(complementaryConfigValid);
+                throw new Exception(complementaryConfigValid);
+            }
+
+            ConnectionFactory connectionFactory = MappingConfigValues.GetMappingValues<ConnectionFactory>(keyValuePairConfig);
+            string connectionFactoryValidation = new ConnectionFactoryValidation(connectionFactory).IsValid();
+            if (connectionFactoryValidation != string.Empty)
+            {
+                Log.Logger.Error(connectionFactoryValidation);
+                throw new Exception(connectionFactoryValidation);
+            }
+
 
             services.AddSingleton<ISubscriptionsManager, InMemorySubscriptionsManager>();
             services.AddSingleton(Log.Logger);
-            services.AddSingleton<IRabbitMQConnection, RabbitMQConnection>(sp => 
+            services.AddSingleton<IRabbitMQConnection, RabbitMQConnection>(sp =>
             {
-                return new RabbitMQConnection(GetConnectionValues(keyValuePairConfig),Log.Logger, complementaryConfig);
+                return new RabbitMQConnection(connectionFactory, Log.Logger, complementaryConfig);
             });
-           
 
 
             services.AddSingleton<IApolloBus, ApolloBusRabbitMQ>(sp =>
@@ -36,79 +55,10 @@ namespace ApolloBus.RabbitMQ
                 var ApolloBusSubcriptionsManager = sp.GetRequiredService<ISubscriptionsManager>();
                 var rabbitMQConnection = sp.GetRequiredService<IRabbitMQConnection>();
                 var serviceProvider = sp.GetRequiredService<IServiceScopeFactory>();
-                return new ApolloBusRabbitMQ(rabbitMQConnection,ApolloBusSubcriptionsManager, logger, serviceProvider, complementaryConfig);
+                return new ApolloBusRabbitMQ(rabbitMQConnection, ApolloBusSubcriptionsManager, logger, serviceProvider, complementaryConfig);
             });
 
-
-
+            RegisterHandlers.AddHandlers(services);
         }
-
-        private static ConnectionFactory GetConnectionValues(IEnumerable<IConfigurationSection> children)
-        {
-            ConnectionFactory connection = new ConnectionFactory();
-            Type type = typeof(ConnectionFactory);
-
-            foreach (var child in children)
-            {
-                try
-                {
-                    PropertyInfo propInfo = type.GetProperty(child.Key);
-                    Type tProp = propInfo.PropertyType;
-
-                    if (tProp.IsGenericType && tProp.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
-                    {
-                        if (child.Value == null)
-                        {
-                            propInfo.SetValue(connection, null, null);
-                            break;
-                        }
-                        tProp = new NullableConverter(propInfo.PropertyType).UnderlyingType;
-                    }
-                    propInfo.SetValue(connection, Convert.ChangeType(child.Value, tProp), null);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Property does not exist {child.Key}");
-                    Log.Information(e.Message);
-
-                }
-            }
-            return connection;
-        }
-
-        private static ComplementaryConfig GetComplementaryConfigValues(IEnumerable<IConfigurationSection> children)
-        {
-            ComplementaryConfig complementaryConfig = new ComplementaryConfig();
-            Type type = typeof(ComplementaryConfig);
-
-            foreach (var child in children)
-            {
-                try
-                {
-                    PropertyInfo propInfo = type.GetProperty(child.Key);
-                    Type tProp = propInfo.PropertyType;
-
-                    if (tProp.IsGenericType && tProp.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
-                    {
-                        if (child.Value == null)
-                        {
-                            propInfo.SetValue(complementaryConfig, null, null);
-                            break;
-                        }
-                        tProp = new NullableConverter(propInfo.PropertyType).UnderlyingType;
-                    }
-                    propInfo.SetValue(complementaryConfig, Convert.ChangeType(child.Value, tProp), null);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Property does not exist {child.Key}");
-                    Log.Information(e.Message);
-
-                }
-            }
-            return complementaryConfig;
-        }
-
-
     }
 }
