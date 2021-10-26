@@ -36,7 +36,7 @@
 <h3 align="center">ApolloBus</h3>
 
   <p align="center">
-   ApolloBus is a eventbus with integration with RabbitMq, Kafka and ServiceBus Azure.
+ ApolloBus is an event bus with integration with RabbitMq, Kafka, and Service Bus Azure.
     <br />
     <a href="https://github.com/bteixeira691/ApolloBus/wiki"><strong>Explore the wiki »</strong></a>
     <br />
