@@ -73,9 +73,6 @@ Use the appsettings for the configuration. You can see that in the samples.
 * [Serilog](https://serilog.net/)
 
 
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -88,7 +85,7 @@ To start you need just have to install the NuGetPackage
 You can check the versions here -> https://www.nuget.org/packages/ApolloBus/
 
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+
 
 
 
@@ -104,7 +101,7 @@ You can check the versions here -> https://www.nuget.org/packages/ApolloBus/
 
 See the [open issues](https://github.com/bteixeira691/ApolloBus/issues) for a full list of proposed features (and known issues).
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+
 
 
 
