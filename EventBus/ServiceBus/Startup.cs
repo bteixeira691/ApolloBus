@@ -1,5 +1,6 @@
 ﻿using ApolloBus.InterfacesAbstraction;
 using ApolloBus.ServiceBus.Model;
+using ApolloBus.StartupServices;
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,9 +22,8 @@ namespace ApolloBus.ServiceBus
             var keyValuePairComplementaryConfig = configuration.GetSection("ServiceBus:ComplementaryConfig").GetChildren();
             var keyValuePairserviceBusProcessorOptions = configuration.GetSection("ServiceBus:ServiceBusProcessorOptions").GetChildren();
 
-            ComplementaryConfig complementaryConfig = GetComplementaryConfigValues<ComplementaryConfig>(keyValuePairComplementaryConfig);
-
-
+            ServiceBusProcessorOptions serviceBusProcessorOptions = MappingConfigValues.GetMappingValues<ServiceBusProcessorOptions>(keyValuePairserviceBusProcessorOptions);
+            ComplementaryConfig complementaryConfig = MappingConfigValues.GetMappingValues<ComplementaryConfig>(keyValuePairComplementaryConfig);
             string complementaryConfigValid = complementaryConfig.IsValid();
             if (complementaryConfigValid != string.Empty)
             {
@@ -31,14 +31,10 @@ namespace ApolloBus.ServiceBus
                 throw new Exception(complementaryConfigValid);
             }
 
-
-            ServiceBusProcessorOptions serviceBusProcessorOptions = GetComplementaryConfigValues<ServiceBusProcessorOptions>(keyValuePairserviceBusProcessorOptions);
-
             services.AddSingleton<ISubscriptionsManager, InMemorySubscriptionsManager>();
             services.AddSingleton(Log.Logger);
 
             services.AddSingleton(new ServiceBusConnection(complementaryConfig, serviceBusProcessorOptions));
-
             services.AddSingleton<IApolloBus, ApolloBusServiceBus>(sp =>
             {
                 var serviceBusConnection = sp.GetRequiredService<ServiceBusConnection>();
@@ -48,41 +44,7 @@ namespace ApolloBus.ServiceBus
                 return new ApolloBusServiceBus(serviceProvider, subcriptionsManager, logger, serviceBusConnection);
             });
 
-
+            RegisterHandlers.AddHandlers(services);
         }
-
-        private static T GetComplementaryConfigValues<T>(IEnumerable<IConfigurationSection> children) where T : new()
-        {
-            T obj = new T();
-            Type type = typeof(T);
-
-            foreach (var child in children)
-            {
-                try
-                {
-                    PropertyInfo propInfo = type.GetProperty(child.Key);
-                    Type tProp = propInfo.PropertyType;
-
-                    if (tProp.IsGenericType && tProp.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
-                    {
-                        if (child.Value == null)
-                        {
-                            propInfo.SetValue(obj, null, null);
-                            break;
-                        }
-                        tProp = new NullableConverter(propInfo.PropertyType).UnderlyingType;
-                    }
-                    propInfo.SetValue(obj, Convert.ChangeType(child.Value, tProp), null);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Property does not exist {child.Key}");
-                    Log.Information(e.Message);
-
-                }
-            }
-            return obj;
-        }
-
     }
 }

@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 using ApolloBus.Kafka.Model;
+using ApolloBus.StartupServices;
 
 namespace ApolloBus.Kafka
 {
@@ -21,7 +22,7 @@ namespace ApolloBus.Kafka
             var keyValuePairConsumer = configuration.GetSection("Kafka:ConsumerConfig").GetChildren();
 
 
-            ProducerConfig producerConfig = GetComplementaryConfigValues<ProducerConfig>(keyValuePairProducer);
+            ProducerConfig producerConfig = MappingConfigValues.GetMappingValues<ProducerConfig>(keyValuePairProducer);
             string producerConfigValidation = new ClientConfigValidation(producerConfig).IsValid();
             if (producerConfigValidation != string.Empty)
             {
@@ -29,7 +30,7 @@ namespace ApolloBus.Kafka
                 throw new Exception(producerConfigValidation);
             }
 
-            ConsumerConfig consumerConfig = GetComplementaryConfigValues<ConsumerConfig>(keyValuePairConsumer);
+            ConsumerConfig consumerConfig = MappingConfigValues.GetMappingValues<ConsumerConfig>(keyValuePairConsumer);
             string consumerConfigValidation = new ClientConfigValidation(consumerConfig).IsValid();
             if (consumerConfigValidation != string.Empty)
             {
@@ -40,11 +41,7 @@ namespace ApolloBus.Kafka
             services.AddSingleton<ISubscriptionsManager, InMemorySubscriptionsManager>();
             services.AddSingleton(Log.Logger);
 
-
-
-
             services.AddSingleton(new KafkaConnection(producerConfig, consumerConfig));
-
             services.AddSingleton<IApolloBus, ApolloBusKafka>(sp =>
             {
                 var kafkaConnection = sp.GetRequiredService<KafkaConnection>();
@@ -54,40 +51,7 @@ namespace ApolloBus.Kafka
                 return new ApolloBusKafka(ApolloBusSubcriptionsManager, logger, kafkaConnection, serviceProvider);
             });
 
-
-        }
-
-        private static T GetComplementaryConfigValues<T>(IEnumerable<IConfigurationSection> children) where T : new()
-        {
-            T obj = new T();
-            Type type = typeof(T);
-
-            foreach (var child in children)
-            {
-                try
-                {
-                    PropertyInfo propInfo = type.GetProperty(child.Key);
-                    Type tProp = propInfo.PropertyType;
-
-                    if (tProp.IsGenericType && tProp.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
-                    {
-                        if (child.Value == null)
-                        {
-                            propInfo.SetValue(obj, null, null);
-                            break;
-                        }
-                        tProp = new NullableConverter(propInfo.PropertyType).UnderlyingType;
-                    }
-                    propInfo.SetValue(obj, Convert.ChangeType(child.Value, tProp), null);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Property does not exist {child.Key}");
-                    Log.Information(e.Message);
-
-                }
-            }
-            return obj;
+            RegisterHandlers.AddHandlers(services);
         }
     }
 }
