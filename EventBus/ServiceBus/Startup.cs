@@ -1,4 +1,5 @@
 ﻿using ApolloBus.InterfacesAbstraction;
+using ApolloBus.ServiceBus.Model;
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,10 +22,13 @@ namespace ApolloBus.ServiceBus
             var keyValuePairserviceBusProcessorOptions = configuration.GetSection("ServiceBus:ServiceBusProcessorOptions").GetChildren();
 
             ComplementaryConfig complementaryConfig = GetComplementaryConfigValues<ComplementaryConfig>(keyValuePairComplementaryConfig);
-            if (!complementaryConfig.IsValid())
+
+
+            string complementaryConfigValid = complementaryConfig.IsValid();
+            if (complementaryConfigValid != string.Empty)
             {
-                Log.Logger.Error($"Error with ComplementaryConfig check your configuration {complementaryConfig}");
-                throw new Exception("Error with ComplementaryConfig check your configuration/logs");
+                Log.Logger.Error(complementaryConfigValid);
+                throw new Exception(complementaryConfigValid);
             }
 
 

@@ -1,4 +1,5 @@
-﻿using Polly;
+﻿using ApolloBus.RabbitMQ.Model;
+using Polly;
 using Polly.Retry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;

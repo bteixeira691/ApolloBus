@@ -1,26 +1,30 @@
-﻿using System;
+﻿using ApolloBus.Validation;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ApolloBus.ServiceBus
+namespace ApolloBus.ServiceBus.Model
 {
-    public class ComplementaryConfig
+    public sealed class ComplementaryConfig : IValid
     {
         public string QueueOrTopic { get; set; }
         public bool IsQueue { get; set; }
         public string ConnectionString { get; set; }
         public string SubscriptionName { get; set; }
 
-        public bool IsValid()
+        public string IsValid()
         {
+            if(string.IsNullOrWhiteSpace(ConnectionString) || string.IsNullOrEmpty(ConnectionString))
+                   return "ConnectionString is not valid!";
+
             if (IsQueue && (string.IsNullOrWhiteSpace(QueueOrTopic) || string.IsNullOrEmpty(QueueOrTopic)))
-                return false;
+                return "QueueOrTopic is not valid!";
 
             if (!IsQueue)
                 if ((string.IsNullOrWhiteSpace(QueueOrTopic) || string.IsNullOrEmpty(QueueOrTopic)) || (string.IsNullOrWhiteSpace(SubscriptionName) || string.IsNullOrEmpty(QueueOrTopic)))
-                    return false;
+                    return "QueueOrTopic/SubscriptionName are not valid!";
 
-            return true;
+            return string.Empty;
         }
     }
 }
