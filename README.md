@@ -59,7 +59,7 @@ ApolloBus is an EventBus with integration with RabbitMq, Kafka and ServiceBus Az
 Use the appsettings for the configuration. You can see that in the samples.
 
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+
 
 
 
@@ -119,7 +119,7 @@ Don't forget to give the project a star! Thanks again!
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+
 
 
 
