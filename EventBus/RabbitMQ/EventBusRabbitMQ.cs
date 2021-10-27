@@ -67,7 +67,7 @@ namespace ApolloBus.RabbitMQ
             }
         }
 
-        public async Task Publish(Event _event)
+        public async Task Publish(ApolloEvent _event)
         {
             if (!_persistentConnection.IsConnected)
             {
@@ -111,7 +111,7 @@ namespace ApolloBus.RabbitMQ
         }
 
         public async Task Subscribe<T, TH>()
-            where T : Event
+            where T : ApolloEvent
             where TH : IEventHandler<T>
         {
             var eventName = _subsManager.GetEventKey<T>();

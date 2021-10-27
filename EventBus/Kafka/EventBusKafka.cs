@@ -31,7 +31,7 @@ namespace ApolloBus.Kafka
 
 
 
-        public async Task Publish(Event _event)
+        public async Task Publish(ApolloEvent _event)
         {
             if (_event == null)
             {
@@ -43,10 +43,10 @@ namespace ApolloBus.Kafka
 
             try
             {
-                var producer = _kafkaConnection.ProducerBuilder<Event>();
+                var producer = _kafkaConnection.ProducerBuilder<ApolloEvent>();
 
                 _logger.Information($"Publishing the event {_event} to Kafka topic {eventName}");
-                var producerResult = await producer.ProduceAsync(eventName, new Message<Null, Event>() { Value = _event });
+                var producerResult = await producer.ProduceAsync(eventName, new Message<Null, ApolloEvent>() { Value = _event });
 
             }
             catch (Exception e)
@@ -58,7 +58,7 @@ namespace ApolloBus.Kafka
 
 
         public async Task Subscribe<T, TH>()
-            where T : Event
+            where T : ApolloEvent
             where TH : IEventHandler<T>
         {
             var eventName = typeof(T).Name;
@@ -97,7 +97,7 @@ namespace ApolloBus.Kafka
             }
         }
 
-        private async Task ProcessEvent<T>(T message) where T : Event
+        private async Task ProcessEvent<T>(T message) where T : ApolloEvent
         {
 
 

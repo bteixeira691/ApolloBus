@@ -13,19 +13,19 @@ namespace ApolloBus
 
 
         void AddSubscription<T, TH>()
-           where T : Event
+           where T : ApolloEvent
            where TH : IEventHandler<T>;
 
         void RemoveSubscription<T, TH>()
              where TH : IEventHandler<T>
-             where T : Event;
+             where T : ApolloEvent;
 
 
-        bool HasSubscriptionsForEvent<T>() where T : Event;
+        bool HasSubscriptionsForEvent<T>() where T : ApolloEvent;
         bool HasSubscriptionsForEvent(string eventName);
         Type GetEventTypeByName(string eventName);
         void Clear();
-        IEnumerable<SubscriptionInfo> GetHandlersForEvent<T>() where T : Event;
+        IEnumerable<SubscriptionInfo> GetHandlersForEvent<T>() where T : ApolloEvent;
         IEnumerable<SubscriptionInfo> GetHandlersForEvent(string eventName);
         string GetEventKey<T>();
     }
