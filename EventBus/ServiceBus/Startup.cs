@@ -1,6 +1,8 @@
 ﻿using ApolloBus.InterfacesAbstraction;
+using ApolloBus.Polly;
 using ApolloBus.ServiceBus.Model;
 using ApolloBus.StartupServices;
+using ApolloBus.Validation;
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,11 +21,11 @@ namespace ApolloBus.ServiceBus
         public static void AddServiceBus(this IServiceCollection services, IConfiguration configuration)
         {
 
-            var keyValuePairComplementaryConfig = configuration.GetSection("ServiceBus:ComplementaryConfig").GetChildren();
-            var keyValuePairserviceBusProcessorOptions = configuration.GetSection("ServiceBus:ServiceBusProcessorOptions").GetChildren();
+            ServiceBusClientOptions serviceBusClientOptions = configuration.GetSection("ServiceBus:ServiceBusClientOptions").Get<ServiceBusClientOptions>();
+            ComplementaryConfig complementaryConfig = configuration.GetSection("ServiceBus:ComplementaryConfig").Get<ComplementaryConfig>();
+            ServiceBusProcessorOptions serviceBusProcessorOptions = configuration.GetSection("ServiceBus:ServiceBusProcessorOptions").Get<ServiceBusProcessorOptions>();
 
-            ServiceBusProcessorOptions serviceBusProcessorOptions = MappingConfigValues.GetMappingValues<ServiceBusProcessorOptions>(keyValuePairserviceBusProcessorOptions);
-            ComplementaryConfig complementaryConfig = MappingConfigValues.GetMappingValues<ComplementaryConfig>(keyValuePairComplementaryConfig);
+
             string complementaryConfigValid = complementaryConfig.IsValid();
             if (complementaryConfigValid != string.Empty)
             {
@@ -31,17 +33,28 @@ namespace ApolloBus.ServiceBus
                 throw new Exception(complementaryConfigValid);
             }
 
+
             services.AddSingleton<ISubscriptionsManager, InMemorySubscriptionsManager>();
             services.AddSingleton(Log.Logger);
+            services.AddSingleton<IComplementaryConfig, ComplementaryConfig>();
 
-            services.AddSingleton(new ServiceBusConnection(complementaryConfig, serviceBusProcessorOptions));
+            services.AddSingleton<IPollyPolicy, PollyPolicy>(sp =>
+            {
+                var cConfig = sp.GetRequiredService<IComplementaryConfig>();
+                var logger = sp.GetRequiredService<ILogger>();
+                return new PollyPolicy(logger, cConfig);
+            });
+
+
+            services.AddSingleton(new ServiceBusConnection(complementaryConfig, serviceBusProcessorOptions, serviceBusClientOptions));
             services.AddSingleton<IApolloBus, ApolloBusServiceBus>(sp =>
             {
                 var serviceBusConnection = sp.GetRequiredService<ServiceBusConnection>();
                 var logger = sp.GetRequiredService<ILogger>();
                 var subcriptionsManager = sp.GetRequiredService<ISubscriptionsManager>();
                 var serviceProvider = sp.GetRequiredService<IServiceScopeFactory>();
-                return new ApolloBusServiceBus(serviceProvider, subcriptionsManager, logger, serviceBusConnection);
+                var polly = sp.GetRequiredService<IPollyPolicy>();
+                return new ApolloBusServiceBus(serviceProvider, subcriptionsManager, logger, polly,serviceBusConnection);
             });
 
             RegisterHandlers.AddHandlers(services);

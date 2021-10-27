@@ -5,9 +5,9 @@ using System.Text;
 
 namespace ApolloBus.RabbitMQ.Model
 {
-    public sealed class ComplementaryConfig : IValid
+    public sealed class ComplementaryConfig : IComplementaryConfig, IValid
     {
-        public int Retry { get; set; }
+        public int Retry { get; set; } = 5;
         public string QueueName { get; set; }
         public string BrokenName { get; set; }
 
