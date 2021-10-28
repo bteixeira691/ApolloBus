@@ -92,12 +92,13 @@ You can check the versions here -> https://www.nuget.org/packages/ApolloBus/
 <!-- ROADMAP -->
 ## Roadmap
 
-- [] Polly with Kafka
-- [] Polly with ServiceBus Azure
+- [] Retry Policy with Kafka
+- [] Retry Policy with ServiceBus Azure
 - [] Better Validation
     - [] Kafka config
     - [] ServiceBus Azure config
     - [] RabbitMq config
+- [] Deadqueue if dont exist a handler
 
 See the [open issues](https://github.com/bteixeira691/ApolloBus/issues) for a full list of proposed features (and known issues).
 
@@ -142,7 +143,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 [stars-url]: https://github.com/bteixeira691/ApolloBus/stargazers
 [issues-shield]: https://img.shields.io/github/issues/bteixeira691/ApolloBus.svg?style=for-the-badge
 [issues-url]: https://github.com/bteixeira691/ApolloBus/issues
-[license-shield]: https://img.shields.io/github/license/bteixeira691/ApolloBus.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/github/license/bteixeira691/apollobus?label=license&style=for-the-badge
 [license-url]: https://github.com/bteixeira691/ApolloBus/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/bernardojmteixeira
