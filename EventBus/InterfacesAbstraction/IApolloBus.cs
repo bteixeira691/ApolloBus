@@ -8,8 +8,8 @@ namespace ApolloBus.InterfacesAbstraction
 {
     public interface IApolloBus
     {
-        Task Publish(Event _event);
+        Task Publish(ApolloEvent _event);
 
-        Task Subscribe<T, TH>() where T : Event where TH : IEventHandler<T>;
+        Task Subscribe<T, TH>() where T : ApolloEvent where TH : IEventHandler<T>;
     }
 }
