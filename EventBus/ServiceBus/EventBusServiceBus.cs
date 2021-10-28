@@ -31,7 +31,7 @@ namespace ApolloBus.ServiceBus
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
         }
 
-        public async Task Publish(Event _event)
+        public async Task Publish(ApolloEvent _event)
         {
             if (_event == null)
             {
@@ -58,7 +58,7 @@ namespace ApolloBus.ServiceBus
         }
 
         public async Task Subscribe<T, TH>()
-            where T : Event
+            where T : ApolloEvent
             where TH : IEventHandler<T>
         {
  
