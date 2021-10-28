@@ -1,5 +1,6 @@
 ﻿using ApolloBus.Events;
 using ApolloBus.InterfacesAbstraction;
+using ApolloBus.Polly;
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -17,14 +18,17 @@ namespace ApolloBus.ServiceBus
         private readonly ILogger _logger;
         private readonly ServiceBusConnection _serviceBusConnection;
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IPollyPolicy _pollyPolicy;
 
         public ApolloBusServiceBus(IServiceScopeFactory serviceScopeFactory, ISubscriptionsManager subscriptionsManager,
-            ILogger logger, ServiceBusConnection serviceBusConnection)
+            ILogger logger, IPollyPolicy pollyPolicy,ServiceBusConnection serviceBusConnection)
         {
-            _logger = logger;
-            _serviceBusConnection = serviceBusConnection;
-            _subsManager = subscriptionsManager;
-            _serviceScopeFactory = serviceScopeFactory;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            _pollyPolicy = pollyPolicy ?? throw new ArgumentNullException(nameof(pollyPolicy)); 
+            _serviceBusConnection = serviceBusConnection ?? throw new ArgumentNullException(nameof(serviceBusConnection));
+            _subsManager = subscriptionsManager ?? throw new ArgumentNullException(nameof(subscriptionsManager));
+            _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
         }
 
         public async Task Publish(ApolloEvent _event)
@@ -37,25 +41,20 @@ namespace ApolloBus.ServiceBus
 
             var eventName = _event.GetType().Name;
 
-            try
+            var policy =  _pollyPolicy.ApolloRetryPolicyEvent(_event.Id);
+
+            await policy.ExecuteAsync(async () =>
             {
                 var sender = await _serviceBusConnection.CreateSender();
-                _logger.Information($"Publishing the event {_event} to ServiceBus topic {eventName}");
-                
+                _logger.Information($"Publishing the event {_event} to ServiceBus -> {eventName}");
+
                 var message = JsonConvert.SerializeObject(_event);
 
                 ServiceBusMessage serviceBusMessage = new ServiceBusMessage(message);
                 serviceBusMessage.Subject = eventName;
 
                 await sender.SendMessageAsync(serviceBusMessage);
-
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"Error occured during publishing the event to topic {_event}");
-                _logger.Error($"Sender exception {e.Message}, StackTrace {e.StackTrace}");
-            }
-   
+            });
         }
 
         public async Task Subscribe<T, TH>()
@@ -92,7 +91,7 @@ namespace ApolloBus.ServiceBus
 
         private async Task ProcessEvent(string eventName, string message)
         {
-            _logger.Information("Processing ServiceBus event: {EventName}", eventName);
+            _logger.Information("Processing ServiceBus event: {eventName}", eventName);
 
             if (_subsManager.HasSubscriptionsForEvent(eventName))
             {
@@ -119,7 +118,7 @@ namespace ApolloBus.ServiceBus
             }
             else
             {
-                _logger.Warning("No subscription for ServiceBus event: {EventName}", eventName);
+                _logger.Warning("No subscription for ServiceBus event: {eventName}", eventName);
             }
         }
 

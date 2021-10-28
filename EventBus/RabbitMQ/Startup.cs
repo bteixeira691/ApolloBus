@@ -1,6 +1,8 @@
 ﻿using ApolloBus.InterfacesAbstraction;
+using ApolloBus.Polly;
 using ApolloBus.RabbitMQ.Model;
 using ApolloBus.StartupServices;
+using ApolloBus.Validation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
@@ -20,10 +22,9 @@ namespace ApolloBus.RabbitMQ
 
         public static void AddRabbitMq(this IServiceCollection services, IConfiguration configuration)
         {
-            var keyValuePairConfig = configuration.GetSection("RabbitMQ:Config").GetChildren();
-            var keyValuePairComplementaryConfig = configuration.GetSection("RabbitMQ:ComplementaryConfig").GetChildren();
+            ConnectionFactory connectionFactory = configuration.GetSection("RabbitMQ:ConnectionFactory").Get<ConnectionFactory>();
+            ComplementaryConfig complementaryConfig = configuration.GetSection("RabbitMQ:ComplementaryConfig").Get<ComplementaryConfig>();
 
-            ComplementaryConfig complementaryConfig = MappingConfigValues.GetMappingValues<ComplementaryConfig>(keyValuePairComplementaryConfig);
 
             string complementaryConfigValid = complementaryConfig.IsValid();
             if (complementaryConfigValid != string.Empty)
@@ -32,7 +33,7 @@ namespace ApolloBus.RabbitMQ
                 throw new Exception(complementaryConfigValid);
             }
 
-            ConnectionFactory connectionFactory = MappingConfigValues.GetMappingValues<ConnectionFactory>(keyValuePairConfig);
+
             string connectionFactoryValidation = new ConnectionFactoryValidation(connectionFactory).IsValid();
             if (connectionFactoryValidation != string.Empty)
             {
@@ -43,9 +44,21 @@ namespace ApolloBus.RabbitMQ
 
             services.AddSingleton<ISubscriptionsManager, InMemorySubscriptionsManager>();
             services.AddSingleton(Log.Logger);
+            services.AddSingleton<IComplementaryConfig, ComplementaryConfig>();
+
+
+
+            services.AddSingleton<IPollyPolicy,PollyPolicy>(sp =>
+            {
+                var cConfig = sp.GetRequiredService<IComplementaryConfig>();
+                var logger = sp.GetRequiredService<ILogger>();
+                return new PollyPolicy(logger, cConfig);
+            });
+
             services.AddSingleton<IRabbitMQConnection, RabbitMQConnection>(sp =>
             {
-                return new RabbitMQConnection(connectionFactory, Log.Logger, complementaryConfig);
+                var pollyPolicy = sp.GetRequiredService<IPollyPolicy>();
+                return new RabbitMQConnection(connectionFactory, Log.Logger, pollyPolicy,complementaryConfig);
             });
 
 
@@ -55,7 +68,8 @@ namespace ApolloBus.RabbitMQ
                 var ApolloBusSubcriptionsManager = sp.GetRequiredService<ISubscriptionsManager>();
                 var rabbitMQConnection = sp.GetRequiredService<IRabbitMQConnection>();
                 var serviceProvider = sp.GetRequiredService<IServiceScopeFactory>();
-                return new ApolloBusRabbitMQ(rabbitMQConnection, ApolloBusSubcriptionsManager, logger, serviceProvider, complementaryConfig);
+                var pollyPolicy = sp.GetRequiredService<IPollyPolicy>();
+                return new ApolloBusRabbitMQ(rabbitMQConnection, ApolloBusSubcriptionsManager, logger, serviceProvider, pollyPolicy, complementaryConfig);
             });
 
             RegisterHandlers.AddHandlers(services);

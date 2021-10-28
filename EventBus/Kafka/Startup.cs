@@ -18,11 +18,9 @@ namespace ApolloBus.Kafka
       
         public static void AddKafka(this IServiceCollection services, IConfiguration configuration)
         {
-            var keyValuePairProducer = configuration.GetSection("Kafka:ProducerConfig").GetChildren();
-            var keyValuePairConsumer = configuration.GetSection("Kafka:ConsumerConfig").GetChildren();
+            ProducerConfig producerConfig = configuration.GetSection("Kafka:ProducerConfig").Get<ProducerConfig>();
+            ConsumerConfig consumerConfig = configuration.GetSection("Kafka:ConsumerConfig").Get<ConsumerConfig>();
 
-
-            ProducerConfig producerConfig = MappingConfigValues.GetMappingValues<ProducerConfig>(keyValuePairProducer);
             string producerConfigValidation = new ClientConfigValidation(producerConfig).IsValid();
             if (producerConfigValidation != string.Empty)
             {
@@ -30,7 +28,6 @@ namespace ApolloBus.Kafka
                 throw new Exception(producerConfigValidation);
             }
 
-            ConsumerConfig consumerConfig = MappingConfigValues.GetMappingValues<ConsumerConfig>(keyValuePairConsumer);
             string consumerConfigValidation = new ClientConfigValidation(consumerConfig).IsValid();
             if (consumerConfigValidation != string.Empty)
             {

@@ -5,12 +5,13 @@ using System.Text;
 
 namespace ApolloBus.ServiceBus.Model
 {
-    public sealed class ComplementaryConfig : IValid
+    public sealed class ComplementaryConfig : IComplementaryConfig, IValid
     {
         public string QueueOrTopic { get; set; }
         public bool IsQueue { get; set; }
         public string ConnectionString { get; set; }
         public string SubscriptionName { get; set; }
+        public int Retry { get; set; } = 5;
 
         public string IsValid()
         {
