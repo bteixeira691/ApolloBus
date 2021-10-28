@@ -92,12 +92,13 @@ You can check the versions here -> https://www.nuget.org/packages/ApolloBus/
 <!-- ROADMAP -->
 ## Roadmap
 
-- [] Polly with Kafka
-- [] Polly with ServiceBus Azure
+- [] Retry Policy with Kafka
+- [] Retry Policy with ServiceBus Azure
 - [] Better Validation
     - [] Kafka config
     - [] ServiceBus Azure config
     - [] RabbitMq config
+- [] Deadqueue if dont exist a handler
 
 See the [open issues](https://github.com/bteixeira691/ApolloBus/issues) for a full list of proposed features (and known issues).
 
