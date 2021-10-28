@@ -1,5 +1,6 @@
 ﻿using ApolloBus.Events;
 using ApolloBus.InterfacesAbstraction;
+using ApolloBus.Polly;
 using ApolloBus.RabbitMQ.Model;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -23,25 +24,26 @@ namespace ApolloBus.RabbitMQ
         private readonly IRabbitMQConnection _persistentConnection;
         private readonly ILogger _logger;
         private readonly ISubscriptionsManager _subsManager;
-        private readonly int _retryCount;
+
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IPollyPolicy _pollyPolicy;
 
         private IModel _consumerChannel;
         private string _queueName;
         private string _brokenName;
 
-        public ApolloBusRabbitMQ(IRabbitMQConnection persistentConnection,ISubscriptionsManager subsManager, 
-            ILogger logger, IServiceScopeFactory serviceScopeFactory, ComplementaryConfig complementaryConfig)
+        public ApolloBusRabbitMQ(IRabbitMQConnection persistentConnection, ISubscriptionsManager subsManager,
+            ILogger logger, IServiceScopeFactory serviceScopeFactory, IPollyPolicy pollyPolicy, ComplementaryConfig complementaryConfig)
         {
             _persistentConnection = persistentConnection ?? throw new ArgumentNullException(nameof(persistentConnection));
-            _serviceScopeFactory = serviceScopeFactory?? throw new ArgumentNullException(nameof(serviceScopeFactory));
+            _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             _subsManager = subsManager ?? throw new ArgumentNullException(nameof(subsManager));
+            _pollyPolicy = pollyPolicy ?? throw new ArgumentNullException(nameof(pollyPolicy));
 
             _queueName = complementaryConfig.QueueName;
             _brokenName = complementaryConfig.BrokenName;
             _consumerChannel = CreateConsumerChannel();
 
-            _retryCount = complementaryConfig.Retry;
             _logger = logger;
             _subsManager.OnEventRemoved += SubsManager_OnEventRemoved;
         }
@@ -74,13 +76,7 @@ namespace ApolloBus.RabbitMQ
                 _persistentConnection.TryConnect();
             }
 
-            var policy = RetryPolicy.Handle<BrokerUnreachableException>()
-                .Or<SocketException>()
-                .WaitAndRetry(_retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
-                {
-                    _logger.Warning(ex, "Could not publish event: {EventId} after {Timeout}s ({ExceptionMessage})", _event.Id, $"{time.TotalSeconds:n1}", ex.Message);
-                });
-
+            var policy = _pollyPolicy.ApolloRetryPolicyEvent(_event.Id);
             var eventName = _event.GetType().Name;
 
             using (var channel = _persistentConnection.CreateModel())
@@ -93,19 +89,19 @@ namespace ApolloBus.RabbitMQ
                 var message = JsonConvert.SerializeObject(_event);
                 var body = Encoding.UTF8.GetBytes(message);
 
-                policy.Execute(() =>
+                await policy.ExecuteAsync(async () =>
                 {
-                    var properties = channel.CreateBasicProperties();
-                    properties.DeliveryMode = 2; 
+                     var properties = channel.CreateBasicProperties();
+                     properties.DeliveryMode = 2;
 
-                    _logger.Information("Publishing event to RabbitMQ: {EventId}", _event.Id);
+                     _logger.Information("Publishing event to RabbitMQ: {EventId}", _event.Id);
 
-                    channel.BasicPublish(
-                        exchange: _brokenName,
-                        routingKey: eventName,
-                        mandatory: true,
-                        basicProperties: properties,
-                        body: body);
+                     channel.BasicPublish(
+                         exchange: _brokenName,
+                         routingKey: eventName,
+                         mandatory: true,
+                         basicProperties: properties,
+                         body: body);
                 });
             }
         }
@@ -155,7 +151,7 @@ namespace ApolloBus.RabbitMQ
 
         private void StartBasicConsume()
         {
-             _logger.Information("Starting RabbitMQ basic consume");
+            _logger.Information("Starting RabbitMQ basic consume");
 
             if (_consumerChannel != null)
             {
@@ -210,6 +206,7 @@ namespace ApolloBus.RabbitMQ
             channel.ExchangeDeclare(exchange: _brokenName,
                                     type: "direct");
 
+            //ch.ExchangeBind(_brokenName, "source", "routingKey");
             channel.QueueDeclare(queue: _queueName,
                                  durable: true,
                                  exclusive: false,
@@ -242,7 +239,7 @@ namespace ApolloBus.RabbitMQ
                     {
                         var handler = scope.ServiceProvider.GetRequiredService(subscription.HandlerType);
 
-                        if (handler == null) 
+                        if (handler == null)
                             continue;
 
                         var eventType = _subsManager.GetEventTypeByName(eventName);
