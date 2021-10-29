@@ -2,6 +2,7 @@
 using ApolloBus.InterfacesAbstraction;
 using ApolloBus.Polly;
 using Azure.Messaging.ServiceBus;
+using Hangfire;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Serilog;
@@ -21,11 +22,11 @@ namespace ApolloBus.ServiceBus
         private readonly IPollyPolicy _pollyPolicy;
 
         public ApolloBusServiceBus(IServiceScopeFactory serviceScopeFactory, ISubscriptionsManager subscriptionsManager,
-            ILogger logger, IPollyPolicy pollyPolicy,ServiceBusConnection serviceBusConnection)
+            ILogger logger, IPollyPolicy pollyPolicy, ServiceBusConnection serviceBusConnection)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            _pollyPolicy = pollyPolicy ?? throw new ArgumentNullException(nameof(pollyPolicy)); 
+            _pollyPolicy = pollyPolicy ?? throw new ArgumentNullException(nameof(pollyPolicy));
             _serviceBusConnection = serviceBusConnection ?? throw new ArgumentNullException(nameof(serviceBusConnection));
             _subsManager = subscriptionsManager ?? throw new ArgumentNullException(nameof(subscriptionsManager));
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
@@ -41,7 +42,7 @@ namespace ApolloBus.ServiceBus
 
             var eventName = _event.GetType().Name;
 
-            var policy =  _pollyPolicy.ApolloRetryPolicyEvent(_event.Id);
+            var policy = _pollyPolicy.ApolloRetryPolicyEvent(_event.Id);
 
             await policy.ExecuteAsync(async () =>
             {
@@ -61,7 +62,7 @@ namespace ApolloBus.ServiceBus
             where T : ApolloEvent
             where TH : IEventHandler<T>
         {
- 
+
             var eventName = typeof(T).Name;
             var processor = await _serviceBusConnection.CreateProcessor();
             _subsManager.AddSubscription<T, TH>();
@@ -120,6 +121,20 @@ namespace ApolloBus.ServiceBus
             {
                 _logger.Warning("No subscription for ServiceBus event: {eventName}", eventName);
             }
+        }
+
+        public async Task PublishDelay(ApolloEvent _event, int secounds)
+        {
+            BackgroundJob.Schedule(() => Publish(_event), TimeSpan.FromSeconds(secounds));
+        }
+
+        public async Task PublishRecurring(ApolloEvent _event, string CronExpressions)
+        {
+            RecurringJob.AddOrUpdate("PublishApolloEvent",() => Publish(_event), CronExpressions);
+        }
+        public async Task RemovePublishRecurring()
+        {
+            RecurringJob.RemoveIfExists("PublishApolloEvent");
         }
 
     }

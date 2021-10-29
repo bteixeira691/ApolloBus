@@ -2,6 +2,9 @@
 using ApolloBus.InterfacesAbstraction;
 using ApolloBus.Polly;
 using ApolloBus.RabbitMQ.Model;
+using ApolloBus.RabbitMQ.Model.Interfaces;
+using ApolloBus.Validation;
+using Hangfire;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Polly;
@@ -33,7 +36,7 @@ namespace ApolloBus.RabbitMQ
         private string _brokenName;
 
         public ApolloBusRabbitMQ(IRabbitMQConnection persistentConnection, ISubscriptionsManager subsManager,
-            ILogger logger, IServiceScopeFactory serviceScopeFactory, IPollyPolicy pollyPolicy, ComplementaryConfig complementaryConfig)
+            ILogger logger, IServiceScopeFactory serviceScopeFactory, IPollyPolicy pollyPolicy, IComplementaryConfigRabbit complementaryConfig)
         {
             _persistentConnection = persistentConnection ?? throw new ArgumentNullException(nameof(persistentConnection));
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
@@ -47,6 +50,7 @@ namespace ApolloBus.RabbitMQ
             _logger = logger;
             _subsManager.OnEventRemoved += SubsManager_OnEventRemoved;
         }
+
 
         private void SubsManager_OnEventRemoved(object sender, string eventName)
         {
@@ -198,9 +202,6 @@ namespace ApolloBus.RabbitMQ
             {
                 _persistentConnection.TryConnect();
             }
-
-            //_logger.Information("Creating RabbitMQ consumer channel");
-
             var channel = _persistentConnection.CreateModel();
 
             channel.ExchangeDeclare(exchange: _brokenName,
@@ -256,6 +257,20 @@ namespace ApolloBus.RabbitMQ
             {
                 _logger.Warning("No subscription for RabbitMQ event: {EventName}", eventName);
             }
+        }
+
+        public async Task PublishRecurring(ApolloEvent _event, string CronExpressions)
+        {
+            RecurringJob.AddOrUpdate("PublishApolloEvent", () => Publish(_event), CronExpressions);
+        }
+        public async Task RemovePublishRecurring()
+        {
+            RecurringJob.RemoveIfExists("PublishApolloEvent");
+        }
+
+        public async Task PublishDelay(ApolloEvent _event, int seconds)
+        {
+            BackgroundJob.Schedule(() => Publish(_event), TimeSpan.FromSeconds(seconds));
         }
     }
 }

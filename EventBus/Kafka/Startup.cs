@@ -49,6 +49,7 @@ namespace ApolloBus.Kafka
             });
 
             RegisterHandlers.AddHandlers(services);
+            HangfireServices.AddHangfireServices(services);
         }
     }
 }

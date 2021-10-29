@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using System.Linq;
 using Serilog;
+using Hangfire;
 
 namespace ApolloBus.Kafka
 {
@@ -39,7 +40,7 @@ namespace ApolloBus.Kafka
                 return;
             }
 
-            var eventName = _event.GetType().Name;  
+            var eventName = _event.GetType().Name;
 
             try
             {
@@ -104,40 +105,52 @@ namespace ApolloBus.Kafka
             var eventName = message.GetType().Name;
 
             _logger.Information($"Process Event {eventName}");
-            try
+
+            if (_subscriptionManager.HasSubscriptionsForEvent(eventName))
             {
-                if (_subscriptionManager.HasSubscriptionsForEvent(eventName))
+                using (var scope = _serviceScopeFactory.CreateScope())
                 {
-                    using (var scope = _serviceScopeFactory.CreateScope())
+                    var subscriptions = _subscriptionManager.GetHandlersForEvent(eventName);
+
+                    _logger.Information($"Subscriptions number {subscriptions.Count()}");
+
+                    foreach (var subscription in subscriptions)
                     {
-                        var subscriptions = _subscriptionManager.GetHandlersForEvent(eventName);
+                        var handler = scope.ServiceProvider.GetRequiredService(subscription.HandlerType);
 
-                        _logger.Information($"Subscriptions number {subscriptions.Count()}");
+                        if (handler == null)
+                            continue;
 
-                        foreach (var subscription in subscriptions)
-                        {
-                            var handler = scope.ServiceProvider.GetRequiredService(subscription.HandlerType);
-
-                            if (handler == null)
-                                continue;
-
-                            var eventType = _subscriptionManager.GetEventTypeByName(eventName);
-                            var concreteType = typeof(IEventHandler<>).MakeGenericType(eventType);
+                        var eventType = _subscriptionManager.GetEventTypeByName(eventName);
+                        var concreteType = typeof(IEventHandler<>).MakeGenericType(eventType);
 
 
-                            await Task.Yield();
-                            await (Task)concreteType.GetMethod("Handler").Invoke(handler, new object[] { message });
-                        }
+                        await Task.Yield();
+                        await (Task)concreteType.GetMethod("Handler").Invoke(handler, new object[] { message });
                     }
                 }
-            }catch(Exception e)
-            {
-
-                _logger.Error($"Process Event has an error {e.Message}, StackTrace {e.StackTrace}");
             }
+            else
+            {
+                _logger.Warning("No subscription for Kafka event: {eventName}", eventName);
+            }
+
         }
 
+        public async Task PublishDelay(ApolloEvent _event, int secounds)
+        {
+            BackgroundJob.Schedule(() => Publish(_event), TimeSpan.FromSeconds(secounds));
+        }
 
+        public async Task PublishRecurring(ApolloEvent _event, string CronExpressions)
+        {
+            RecurringJob.AddOrUpdate("PublishApolloEvent", () => Publish(_event), CronExpressions);
+        }
+
+        public async Task RemovePublishRecurring()
+        {
+            RecurringJob.RemoveIfExists("PublishApolloEvent");
+        }
     }
 }
 
