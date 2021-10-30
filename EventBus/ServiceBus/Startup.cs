@@ -58,7 +58,7 @@ namespace ApolloBus.ServiceBus
             });
 
             RegisterHandlers.AddHandlers(services);
-            HangfireServices.AddHangfireServices(services);
+            HangfireServices.AddHangfireServices(services, configuration);
         }
     }
 }

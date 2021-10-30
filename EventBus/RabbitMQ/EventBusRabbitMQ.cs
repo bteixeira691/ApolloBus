@@ -95,17 +95,17 @@ namespace ApolloBus.RabbitMQ
 
                 await policy.ExecuteAsync(async () =>
                 {
-                     var properties = channel.CreateBasicProperties();
-                     properties.DeliveryMode = 2;
+                    var properties = channel.CreateBasicProperties();
+                    properties.DeliveryMode = 2;
 
-                     _logger.Information("Publishing event to RabbitMQ: {EventId}", _event.Id);
+                    _logger.Information("Publishing event to RabbitMQ: {EventId}", _event.Id);
 
-                     channel.BasicPublish(
-                         exchange: _brokenName,
-                         routingKey: eventName,
-                         mandatory: true,
-                         basicProperties: properties,
-                         body: body);
+                    channel.BasicPublish(
+                        exchange: _brokenName,
+                        routingKey: eventName,
+                        mandatory: true,
+                        basicProperties: properties,
+                        body: body);
                 });
             }
         }
@@ -261,16 +261,39 @@ namespace ApolloBus.RabbitMQ
 
         public async Task PublishRecurring(ApolloEvent _event, string CronExpressions)
         {
-            RecurringJob.AddOrUpdate("PublishApolloEvent", () => Publish(_event), CronExpressions);
+            try
+            {
+                _logger.Information($"Recurring Publish with event {_event}");
+                RecurringJob.AddOrUpdate("PublishApolloEvent", () => Publish(_event), CronExpressions);
+
+            }catch (Exception e)
+            {
+                _logger.Error(e, $"Error PublishRecurring {_event}, CronExpression {CronExpressions}");
+            }
         }
         public async Task RemovePublishRecurring()
         {
-            RecurringJob.RemoveIfExists("PublishApolloEvent");
+            try
+            {
+                RecurringJob.RemoveIfExists("PublishApolloEvent");
+
+            }catch (Exception e)
+            {
+                _logger.Error(e, $"Error RemovePublishRecurring with JobId PublishApolloEvent");
+            }
         }
 
         public async Task PublishDelay(ApolloEvent _event, int seconds)
         {
-            BackgroundJob.Schedule(() => Publish(_event), TimeSpan.FromSeconds(seconds));
+            try
+            {
+                _logger.Information($"Delay Publish with event {_event}, delay time {seconds}seconds");
+                BackgroundJob.Schedule(() => Publish(_event), TimeSpan.FromSeconds(seconds));
+
+            }catch (Exception e)
+            {
+                _logger.Error(e, $"Error PublishDelay {_event}, delay time {seconds}seconds");
+            }
         }
     }
 }

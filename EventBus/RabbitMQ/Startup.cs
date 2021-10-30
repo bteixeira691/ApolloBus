@@ -81,7 +81,7 @@ namespace ApolloBus.RabbitMQ
             });
 
             RegisterHandlers.AddHandlers(services);
-            HangfireServices.AddHangfireServices(services);
+            HangfireServices.AddHangfireServices(services, configuration);
         }
     }
 }
