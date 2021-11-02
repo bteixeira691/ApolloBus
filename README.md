@@ -30,7 +30,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/bteixeira/apollobus">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+    <img src="https://github.com/bteixeira691/ApolloBus/blob/master/Images/ApolloBus400.png" alt="Logo" width="400" height="300">
   </a>
 
 <h3 align="center">ApolloBus</h3>
