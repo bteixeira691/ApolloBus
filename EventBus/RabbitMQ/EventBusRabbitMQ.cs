@@ -1,5 +1,10 @@
 ﻿using ApolloBus.Events;
 using ApolloBus.InterfacesAbstraction;
+using ApolloBus.Polly;
+using ApolloBus.RabbitMQ.Model;
+using ApolloBus.RabbitMQ.Model.Interfaces;
+using ApolloBus.Validation;
+using Hangfire;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Polly;
@@ -22,28 +27,30 @@ namespace ApolloBus.RabbitMQ
         private readonly IRabbitMQConnection _persistentConnection;
         private readonly ILogger _logger;
         private readonly ISubscriptionsManager _subsManager;
-        private readonly int _retryCount;
+
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IPollyPolicy _pollyPolicy;
 
         private IModel _consumerChannel;
         private string _queueName;
         private string _brokenName;
 
-        public ApolloBusRabbitMQ(IRabbitMQConnection persistentConnection,ISubscriptionsManager subsManager, 
-            ILogger logger, IServiceScopeFactory serviceScopeFactory, ComplementaryConfig complementaryConfig)
+        public ApolloBusRabbitMQ(IRabbitMQConnection persistentConnection, ISubscriptionsManager subsManager,
+            ILogger logger, IServiceScopeFactory serviceScopeFactory, IPollyPolicy pollyPolicy, IComplementaryConfigRabbit complementaryConfig)
         {
             _persistentConnection = persistentConnection ?? throw new ArgumentNullException(nameof(persistentConnection));
-            _serviceScopeFactory = serviceScopeFactory?? throw new ArgumentNullException(nameof(serviceScopeFactory));
+            _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             _subsManager = subsManager ?? throw new ArgumentNullException(nameof(subsManager));
+            _pollyPolicy = pollyPolicy ?? throw new ArgumentNullException(nameof(pollyPolicy));
 
             _queueName = complementaryConfig.QueueName;
             _brokenName = complementaryConfig.BrokenName;
             _consumerChannel = CreateConsumerChannel();
 
-            _retryCount = complementaryConfig.Retry;
             _logger = logger;
             _subsManager.OnEventRemoved += SubsManager_OnEventRemoved;
         }
+
 
         private void SubsManager_OnEventRemoved(object sender, string eventName)
         {
@@ -66,20 +73,14 @@ namespace ApolloBus.RabbitMQ
             }
         }
 
-        public async Task Publish(Event _event)
+        public async Task Publish(ApolloEvent _event)
         {
             if (!_persistentConnection.IsConnected)
             {
                 _persistentConnection.TryConnect();
             }
 
-            var policy = RetryPolicy.Handle<BrokerUnreachableException>()
-                .Or<SocketException>()
-                .WaitAndRetry(_retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
-                {
-                    _logger.Warning(ex, "Could not publish event: {EventId} after {Timeout}s ({ExceptionMessage})", _event.Id, $"{time.TotalSeconds:n1}", ex.Message);
-                });
-
+            var policy = _pollyPolicy.ApolloRetryPolicyEvent(_event.Id);
             var eventName = _event.GetType().Name;
 
             using (var channel = _persistentConnection.CreateModel())
@@ -92,10 +93,10 @@ namespace ApolloBus.RabbitMQ
                 var message = JsonConvert.SerializeObject(_event);
                 var body = Encoding.UTF8.GetBytes(message);
 
-                policy.Execute(() =>
+                await policy.ExecuteAsync(async () =>
                 {
                     var properties = channel.CreateBasicProperties();
-                    properties.DeliveryMode = 2; 
+                    properties.DeliveryMode = 2;
 
                     _logger.Information("Publishing event to RabbitMQ: {EventId}", _event.Id);
 
@@ -110,7 +111,7 @@ namespace ApolloBus.RabbitMQ
         }
 
         public async Task Subscribe<T, TH>()
-            where T : Event
+            where T : ApolloEvent
             where TH : IEventHandler<T>
         {
             var eventName = _subsManager.GetEventKey<T>();
@@ -154,7 +155,7 @@ namespace ApolloBus.RabbitMQ
 
         private void StartBasicConsume()
         {
-             _logger.Information("Starting RabbitMQ basic consume");
+            _logger.Information("Starting RabbitMQ basic consume");
 
             if (_consumerChannel != null)
             {
@@ -201,14 +202,12 @@ namespace ApolloBus.RabbitMQ
             {
                 _persistentConnection.TryConnect();
             }
-
-            //_logger.Information("Creating RabbitMQ consumer channel");
-
             var channel = _persistentConnection.CreateModel();
 
             channel.ExchangeDeclare(exchange: _brokenName,
                                     type: "direct");
 
+            //ch.ExchangeBind(_brokenName, "source", "routingKey");
             channel.QueueDeclare(queue: _queueName,
                                  durable: true,
                                  exclusive: false,
@@ -241,7 +240,7 @@ namespace ApolloBus.RabbitMQ
                     {
                         var handler = scope.ServiceProvider.GetRequiredService(subscription.HandlerType);
 
-                        if (handler == null) 
+                        if (handler == null)
                             continue;
 
                         var eventType = _subsManager.GetEventTypeByName(eventName);
@@ -257,6 +256,43 @@ namespace ApolloBus.RabbitMQ
             else
             {
                 _logger.Warning("No subscription for RabbitMQ event: {EventName}", eventName);
+            }
+        }
+
+        public async Task PublishRecurring(ApolloEvent _event, string CronExpressions)
+        {
+            try
+            {
+                _logger.Information($"Recurring Publish with event {_event}");
+                RecurringJob.AddOrUpdate("PublishApolloEvent", () => Publish(_event), CronExpressions);
+
+            }catch (Exception e)
+            {
+                _logger.Error(e, $"Error PublishRecurring {_event}, CronExpression {CronExpressions}");
+            }
+        }
+        public async Task RemovePublishRecurring()
+        {
+            try
+            {
+                RecurringJob.RemoveIfExists("PublishApolloEvent");
+
+            }catch (Exception e)
+            {
+                _logger.Error(e, $"Error RemovePublishRecurring with JobId PublishApolloEvent");
+            }
+        }
+
+        public async Task PublishDelay(ApolloEvent _event, int seconds)
+        {
+            try
+            {
+                _logger.Information($"Delay Publish with event {_event}, delay time {seconds}seconds");
+                BackgroundJob.Schedule(() => Publish(_event), TimeSpan.FromSeconds(seconds));
+
+            }catch (Exception e)
+            {
+                _logger.Error(e, $"Error PublishDelay {_event}, delay time {seconds}seconds");
             }
         }
     }
