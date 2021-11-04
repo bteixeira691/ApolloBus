@@ -27,7 +27,7 @@ namespace ApolloBus.RabbitMQ
         public static void AddRabbitMq(this IServiceCollection services, IConfiguration configuration)
         {
             ConnectionFactory connectionFactory = configuration.GetSection("RabbitMQ:ConnectionFactory").Get<ConnectionFactory>();
-            ComplementaryConfigRabbit complementaryConfig = configuration.GetSection("RabbitMQ:ComplementaryConfig").Get<ComplementaryConfigRabbit>();
+            ComplementaryConfig complementaryConfig = configuration.GetSection("RabbitMQ:ComplementaryConfig").Get<ComplementaryConfig>();
 
 
             string complementaryConfigValid = complementaryConfig.IsValid();
@@ -49,9 +49,9 @@ namespace ApolloBus.RabbitMQ
             services.AddSingleton<ISubscriptionsManager, InMemorySubscriptionsManager>();
             services.AddSingleton(Log.Logger);
 
-            services.AddSingleton<IComplementaryConfigRabbit, ComplementaryConfigRabbit>(sp=> 
+            services.AddSingleton<IComplementaryConfigRabbit, ComplementaryConfig>(sp=> 
             {
-                return new ComplementaryConfigRabbit(complementaryConfig.Retry, complementaryConfig.QueueName, complementaryConfig.BrokenName);
+                return new ComplementaryConfig(complementaryConfig.Retry, complementaryConfig.QueueName, complementaryConfig.BrokenName);
             });
 
 
