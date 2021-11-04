@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using System.Linq;
 using Serilog;
+using Hangfire;
 
 namespace ApolloBus.Kafka
 {
@@ -31,7 +32,7 @@ namespace ApolloBus.Kafka
 
 
 
-        public async Task Publish(Event _event)
+        public async Task Publish(ApolloEvent _event)
         {
             if (_event == null)
             {
@@ -39,14 +40,14 @@ namespace ApolloBus.Kafka
                 return;
             }
 
-            var eventName = _event.GetType().Name;  
+            var eventName = _event.GetType().Name;
 
             try
             {
-                var producer = _kafkaConnection.ProducerBuilder<Event>();
+                var producer = _kafkaConnection.ProducerBuilder<ApolloEvent>();
 
                 _logger.Information($"Publishing the event {_event} to Kafka topic {eventName}");
-                var producerResult = await producer.ProduceAsync(eventName, new Message<Null, Event>() { Value = _event });
+                var producerResult = await producer.ProduceAsync(eventName, new Message<Null, ApolloEvent>() { Value = _event });
 
             }
             catch (Exception e)
@@ -58,7 +59,7 @@ namespace ApolloBus.Kafka
 
 
         public async Task Subscribe<T, TH>()
-            where T : Event
+            where T : ApolloEvent
             where TH : IEventHandler<T>
         {
             var eventName = typeof(T).Name;
@@ -97,47 +98,83 @@ namespace ApolloBus.Kafka
             }
         }
 
-        private async Task ProcessEvent<T>(T message) where T : Event
+        private async Task ProcessEvent<T>(T message) where T : ApolloEvent
         {
-
 
             var eventName = message.GetType().Name;
 
             _logger.Information($"Process Event {eventName}");
-            try
+
+            if (_subscriptionManager.HasSubscriptionsForEvent(eventName))
             {
-                if (_subscriptionManager.HasSubscriptionsForEvent(eventName))
+                using (var scope = _serviceScopeFactory.CreateScope())
                 {
-                    using (var scope = _serviceScopeFactory.CreateScope())
+                    var subscriptions = _subscriptionManager.GetHandlersForEvent(eventName);
+
+                    _logger.Information($"Subscriptions number {subscriptions.Count()}");
+
+                    foreach (var subscription in subscriptions)
                     {
-                        var subscriptions = _subscriptionManager.GetHandlersForEvent(eventName);
+                        var handler = scope.ServiceProvider.GetRequiredService(subscription.HandlerType);
 
-                        _logger.Information($"Subscriptions number {subscriptions.Count()}");
+                        if (handler == null)
+                            continue;
 
-                        foreach (var subscription in subscriptions)
-                        {
-                            var handler = scope.ServiceProvider.GetRequiredService(subscription.HandlerType);
-
-                            if (handler == null)
-                                continue;
-
-                            var eventType = _subscriptionManager.GetEventTypeByName(eventName);
-                            var concreteType = typeof(IEventHandler<>).MakeGenericType(eventType);
+                        var eventType = _subscriptionManager.GetEventTypeByName(eventName);
+                        var concreteType = typeof(IEventHandler<>).MakeGenericType(eventType);
 
 
-                            await Task.Yield();
-                            await (Task)concreteType.GetMethod("Handler").Invoke(handler, new object[] { message });
-                        }
+                        await Task.Yield();
+                        await (Task)concreteType.GetMethod("Handler").Invoke(handler, new object[] { message });
                     }
                 }
-            }catch(Exception e)
+            }
+            else
             {
+                _logger.Warning("No subscription for Kafka event: {eventName}", eventName);
+            }
 
-                _logger.Error($"Process Event has an error {e.Message}, StackTrace {e.StackTrace}");
+        }
+
+        public async Task PublishRecurring(ApolloEvent _event, string CronExpressions)
+        {
+            try
+            {
+                _logger.Information($"Recurring Publish with event {_event}");
+                RecurringJob.AddOrUpdate("PublishApolloEvent", () => Publish(_event), CronExpressions);
+
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, $"Error PublishRecurring {_event}, CronExpression {CronExpressions}");
+            }
+        }
+        public async Task RemovePublishRecurring()
+        {
+            try
+            {
+                RecurringJob.RemoveIfExists("PublishApolloEvent");
+
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, $"Error RemovePublishRecurring with JobId PublishApolloEvent");
             }
         }
 
+        public async Task PublishDelay(ApolloEvent _event, int seconds)
+        {
+            try
+            {
+                _logger.Information($"Delay Publish with event {_event}, delay time {seconds}seconds");
+                BackgroundJob.Schedule(() => Publish(_event), TimeSpan.FromSeconds(seconds));
 
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, $"Error PublishDelay {_event}, delay time {seconds}seconds");
+            }
+        }
     }
 }
 

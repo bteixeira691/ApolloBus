@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ApolloBus.InterfacesAbstraction
 {
-    public interface IEventHandler<in TEvent> : IEventHandler where TEvent : Event
+    public interface IEventHandler<in TEvent> : IEventHandler where TEvent : ApolloEvent
     {
         Task Handler(TEvent _event);
     }

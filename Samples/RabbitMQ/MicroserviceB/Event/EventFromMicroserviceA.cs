@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ApolloBus.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MicroserviceB.Event
 {
-    public class EventFromMicroserviceA : ApolloBus.Events.Event
+    public class EventFromMicroserviceA : ApolloEvent
     {
         public string Name { get; set; }
 
