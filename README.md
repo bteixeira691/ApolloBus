@@ -30,7 +30,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/bteixeira/apollobus">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+    <img src="https://github.com/bteixeira691/ApolloBus/blob/master/Images/ApolloBus400.png" alt="Logo" width="400" height="300">
   </a>
 
 <h3 align="center">ApolloBus</h3>
@@ -92,12 +92,13 @@ You can check the versions here -> https://www.nuget.org/packages/ApolloBus/
 <!-- ROADMAP -->
 ## Roadmap
 
-- [] Polly with Kafka
-- [] Polly with ServiceBus Azure
+- [] Retry Policy with Kafka
+- [] Retry Policy with ServiceBus Azure
 - [] Better Validation
     - [] Kafka config
     - [] ServiceBus Azure config
     - [] RabbitMq config
+- [] Deadqueue if dont exist a handler
 
 See the [open issues](https://github.com/bteixeira691/ApolloBus/issues) for a full list of proposed features (and known issues).
 
@@ -142,8 +143,8 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 [stars-url]: https://github.com/bteixeira691/ApolloBus/stargazers
 [issues-shield]: https://img.shields.io/github/issues/bteixeira691/ApolloBus.svg?style=for-the-badge
 [issues-url]: https://github.com/bteixeira691/ApolloBus/issues
-[license-shield]: https://img.shields.io/github/license/bteixeira691/ApolloBus.svg?style=for-the-badge
-[license-url]: https://github.com/bteixeira691/ApolloBus/blob/master/LICENSE
+[license-shield]: https://img.shields.io/github/license/bteixeira691/apollobus?label=license&style=for-the-badge
+[license-url]: https://github.com/bteixeira691/ApolloBus/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/bernardojmteixeira
 [product-screenshot]: images/screenshot.png

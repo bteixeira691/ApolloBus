@@ -1,7 +1,0 @@
-{"Name":"test01","Message":"Sweltering","Id":"d05fe984-1ead-4da0-80f8-92be79966d4c","CreationDate":"2021-10-26T13:29:57.4837612Z"}
-{"Name":"test01","Message":"Scorching","Id":"547fc8fb-2b57-4923-9a91-ba9f9f0df8a3","CreationDate":"2021-10-26T13:30:49.6568731Z"}
-{"Name":"test01","Message":"Balmy","Id":"515c3a9b-00aa-4a52-9b4f-4aafd063e617","CreationDate":"2021-10-27T13:35:20.5536053Z"}
-{"Name":"test01","Message":"Scorching","Id":"5eb8a24a-5942-4b70-90ae-567707afea77","CreationDate":"2021-10-29T14:36:41.7641537Z"}
-{"Name":"test02","Message":"Freezing","Id":"a24ce2d5-9d5e-42cd-afd6-e3520a145df5","CreationDate":"2021-10-29T14:36:45.5742037Z"}
-{"Name":"test01","Message":"Balmy","Id":"3fd58b0a-a2d4-42a9-ab59-4e42b5aa3efc","CreationDate":"2021-10-29T15:22:01.9118882Z"}
-{"Name":"test02","Message":"Warm","Id":"aef7295e-7238-4687-af3b-6f23b4126d53","CreationDate":"2021-10-29T15:22:02.8307209Z"}
