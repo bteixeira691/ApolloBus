@@ -3,7 +3,7 @@ using System;
 
 namespace ApolloBus.Events
 {
-    public class ApolloEvent
+    public abstract class ApolloEvent
     {
         public ApolloEvent()
         {

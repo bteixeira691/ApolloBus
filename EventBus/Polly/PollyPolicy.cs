@@ -1,4 +1,5 @@
-﻿using ApolloBus.Validation;
+﻿using ApolloBus.RabbitMQ.Model.Interfaces;
+using ApolloBus.Validation;
 using Confluent.Kafka;
 using Polly;
 using Polly.Retry;

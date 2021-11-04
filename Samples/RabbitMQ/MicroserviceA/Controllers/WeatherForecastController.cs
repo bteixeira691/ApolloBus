@@ -35,7 +35,13 @@ namespace MicroserviceA.Controllers
                 Name="test01"
             });
 
-            
+            _ApolloBus.PublishDelay(new EventFromMicroserviceA()
+            {
+                Message = Summaries[rng.Next(Summaries.Length)],
+                Name = "test02"
+            }, 2);
+
+
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateTime.Now.AddDays(index),

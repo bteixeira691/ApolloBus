@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ApolloBus.ServiceBus.Model
 {
-    public sealed class ComplementaryConfig : IComplementaryConfig, IValid
+    public sealed class ComplementaryConfig : IComplementaryConfigServiceBus, IValid
     {
         public string QueueOrTopic { get; set; }
         public bool IsQueue { get; set; }

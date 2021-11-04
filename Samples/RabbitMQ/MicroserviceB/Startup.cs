@@ -31,7 +31,6 @@ namespace MicroserviceB
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRabbitMq(Configuration);
-            services.AddTransient<EventFromMicroserviceAHandler>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>

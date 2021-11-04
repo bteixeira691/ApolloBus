@@ -10,6 +10,10 @@ namespace ApolloBus.InterfacesAbstraction
     {
         Task Publish(ApolloEvent _event);
 
+        Task PublishDelay(ApolloEvent _event, int seconds);
+        Task PublishRecurring(ApolloEvent _event, string CronExpressions);
+        Task RemovePublishRecurring();
+
         Task Subscribe<T, TH>() where T : ApolloEvent where TH : IEventHandler<T>;
     }
 }

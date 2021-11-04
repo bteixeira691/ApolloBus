@@ -25,7 +25,7 @@ namespace ApolloBus.RabbitMQ
 
         object sync_root = new object();
 
-        public RabbitMQConnection(IConnectionFactory connectionFactory, ILogger logger, IPollyPolicy pollyPolicy, ComplementaryConfig complementaryConfig )
+        public RabbitMQConnection(IConnectionFactory connectionFactory, ILogger logger, IPollyPolicy pollyPolicy)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _pollyPolicy = pollyPolicy;

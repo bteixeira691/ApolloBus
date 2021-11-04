@@ -1,11 +1,12 @@
-﻿using ApolloBus.Validation;
+﻿using ApolloBus.Kafka.Model.Interfaces;
+using ApolloBus.Validation;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace ApolloBus.Kafka.Model
 {
-    public class ComplementaryConfig : IComplementaryConfig
+    public sealed class ComplementaryConfigKafka : IComplementaryConfigKafka
     {
         public int Retry { get; set; } = 5;
     }

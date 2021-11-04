@@ -33,10 +33,23 @@ namespace MicroserviceA.Controllers
         public IEnumerable<WeatherForecast> Get()
         {
             var rng = new Random();
-            var eventq = new EventFromMicroserviceA();
 
-            eventq.Name = "teste02";
+            var eventq = new EventFromMicroserviceA()
+            {
+                Name = "teste01",
+                Message= Summaries[rng.Next(Summaries.Length)],
+
+            };
             _ApolloBus.Publish(eventq);
+
+            var eventA = new EventFromMicroserviceA()
+            {
+                Name = "teste02",
+                Message = Summaries[rng.Next(Summaries.Length)],
+
+            };
+            _ApolloBus.PublishDelay(eventA, 2);
+
 
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {

@@ -36,11 +36,11 @@ namespace ApolloBus.ServiceBus
 
             services.AddSingleton<ISubscriptionsManager, InMemorySubscriptionsManager>();
             services.AddSingleton(Log.Logger);
-            services.AddSingleton<IComplementaryConfig, ComplementaryConfig>();
+            services.AddSingleton<IComplementaryConfigServiceBus, ComplementaryConfig>();
 
             services.AddSingleton<IPollyPolicy, PollyPolicy>(sp =>
             {
-                var cConfig = sp.GetRequiredService<IComplementaryConfig>();
+                var cConfig = sp.GetRequiredService<IComplementaryConfigServiceBus>();
                 var logger = sp.GetRequiredService<ILogger>();
                 return new PollyPolicy(logger, cConfig);
             });
@@ -58,6 +58,7 @@ namespace ApolloBus.ServiceBus
             });
 
             RegisterHandlers.AddHandlers(services);
+            HangfireServices.AddHangfireServices(services, configuration);
         }
     }
 }
