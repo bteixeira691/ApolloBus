@@ -101,7 +101,6 @@ namespace ApolloBus.Kafka
         private async Task ProcessEvent<T>(T message) where T : ApolloEvent
         {
 
-
             var eventName = message.GetType().Name;
 
             _logger.Information($"Process Event {eventName}");

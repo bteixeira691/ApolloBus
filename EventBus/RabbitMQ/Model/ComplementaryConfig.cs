@@ -6,19 +6,19 @@ using System.Text;
 
 namespace ApolloBus.RabbitMQ.Model
 {
-    public sealed class ComplementaryConfigRabbit : IComplementaryConfigRabbit, IValid
+    public sealed class ComplementaryConfig : IComplementaryConfigRabbit, IValid
     {
         public int Retry { get; set; } = 5;
         public string QueueName { get; set; }
         public string BrokenName { get; set; }
 
-        public ComplementaryConfigRabbit(int retry, string queueName, string brokenName)
+        public ComplementaryConfig(int retry, string queueName, string brokenName)
         {
             Retry = retry;
             QueueName = queueName;
             BrokenName = brokenName;
         }
-        public ComplementaryConfigRabbit()
+        public ComplementaryConfig()
         {
 
         }

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ApolloBus.Kafka.Model
 {
-    public sealed class ComplementaryConfigKafka : IComplementaryConfigKafka
+    public sealed class ComplementaryConfig : IComplementaryConfigKafka
     {
         public int Retry { get; set; } = 5;
     }
