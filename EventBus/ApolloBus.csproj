@@ -8,6 +8,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>ApolloBus400.png</PackageIcon>
     <PackageIconUrl />
+    <Version>2.2.4</Version>
 
   </PropertyGroup>
 
