@@ -37,6 +37,23 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+    <None Include="Samples\AmazonSQS\MicroserviceA\MicroserviceA.csproj" />
+    <None Include="Samples\AmazonSQS\MicroserviceB\MicroserviceB.csproj" />
+    <None Include="Samples\Kafka\MicroserviceA\MicroserviceA.csproj" />
+    <None Include="Samples\Kafka\MicroserviceB\MicroserviceB.csproj" />
+    <None Include="Samples\RabbitMQ\MicroserviceA\MicroserviceA.csproj" />
+    <None Include="Samples\RabbitMQ\MicroserviceB\MicroserviceB.csproj" />
+    <None Include="Samples\ServiceBus\MicroserviceA\MicroserviceA.csproj" />
+    <None Include="Samples\ServiceBus\MicroserviceB\MicroserviceB.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Samples\AmazonSQS\MicroserviceA\bin\Debug\netcoreapp3.1\" />
+    <Folder Include="Samples\AmazonSQS\MicroserviceB\bin\Debug\netcoreapp3.1\" />
+    <Folder Include="Samples\ServiceBus\MicroserviceA\bin\Debug\net5.0\ref\" />
+    <Folder Include="Samples\ServiceBus\MicroserviceA\obj\Debug\net5.0\ref\" />
+    <Folder Include="Samples\ServiceBus\MicroserviceB\bin\Debug\net5.0\ref\" />
+    <Folder Include="Samples\ServiceBus\MicroserviceB\obj\Debug\net5.0\ref\" />
   </ItemGroup>
 
 </Project>
