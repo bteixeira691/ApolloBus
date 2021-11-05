@@ -25,7 +25,7 @@ namespace ApolloBus
         public bool IsEmpty => !_handlers.Keys.Any();
 
         public void AddSubscription<T, TH>()
-            where T : Event
+            where T : ApolloEvent
             where TH : IEventHandler<T>
         {
             var eventName = GetEventKey<T>();
@@ -67,12 +67,12 @@ namespace ApolloBus
 
         public IEnumerable<SubscriptionInfo> GetHandlersForEvent(string eventName) => _handlers[eventName];
 
-        public IEnumerable<SubscriptionInfo> GetHandlersForEvent<T>() where T : Event
+        public IEnumerable<SubscriptionInfo> GetHandlersForEvent<T>() where T : ApolloEvent
         {
             var key = GetEventKey<T>();
             return GetHandlersForEvent(key);
         }
-        public bool HasSubscriptionsForEvent<T>() where T : Event
+        public bool HasSubscriptionsForEvent<T>() where T : ApolloEvent
         {
             var key = GetEventKey<T>();
             return HasSubscriptionsForEvent(key);
@@ -82,7 +82,7 @@ namespace ApolloBus
 
 
         public void RemoveSubscription<T, TH>()
-            where T : Event
+            where T : ApolloEvent
             where TH : IEventHandler<T>
         {
             var handlerToRemove = FindSubscriptionToRemove<T, TH>();
@@ -94,7 +94,7 @@ namespace ApolloBus
         }
 
         private SubscriptionInfo FindSubscriptionToRemove<T, TH>()
-           where T : Event
+           where T : ApolloEvent
            where TH : IEventHandler<T>
         {
             var eventName = GetEventKey<T>();

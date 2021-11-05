@@ -3,16 +3,16 @@ using System;
 
 namespace ApolloBus.Events
 {
-    public class Event
+    public abstract class ApolloEvent
     {
-        public Event()
+        public ApolloEvent()
         {
             Id = Guid.NewGuid();
             CreationDate = DateTime.UtcNow;
         }
 
         [JsonConstructor]
-        public Event(Guid id, DateTime createDate)
+        public ApolloEvent(Guid id, DateTime createDate)
         {
             Id = id;
             CreationDate = createDate;

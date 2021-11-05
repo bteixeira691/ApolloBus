@@ -1,4 +1,6 @@
-﻿using Polly;
+﻿using ApolloBus.Polly;
+using ApolloBus.RabbitMQ.Model;
+using Polly;
 using Polly.Retry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -15,18 +17,19 @@ namespace ApolloBus.RabbitMQ
     {
         private readonly IConnectionFactory _connectionFactory;
         private readonly ILogger _logger;
+        private readonly IPollyPolicy _pollyPolicy;
 
-        private readonly int _retryCount;
+
         IConnection _connection;
         bool _disposed;
 
         object sync_root = new object();
 
-        public RabbitMQConnection(IConnectionFactory connectionFactory, ILogger logger, ComplementaryConfig complementaryConfig )
+        public RabbitMQConnection(IConnectionFactory connectionFactory, ILogger logger, IPollyPolicy pollyPolicy)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
+            _pollyPolicy = pollyPolicy;
 
-            _retryCount = complementaryConfig.Retry;
             _logger = logger;
         }
 
@@ -70,15 +73,9 @@ namespace ApolloBus.RabbitMQ
 
             lock (sync_root)
             {
-                var policy = RetryPolicy.Handle<SocketException>()
-                    .Or<BrokerUnreachableException>()
-                    .WaitAndRetry(_retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
-                    {
-                        _logger.Warning(ex, "RabbitMQ Client could not connect after {TimeOut}s ({ExceptionMessage})", $"{time.TotalSeconds:n1}", ex.Message);
-                    }
-                );
+                var policy = _pollyPolicy.ApolloRetryPolicyConnect();
 
-                policy.Execute(() =>
+                policy.ExecuteAsync(async() =>
                 {
                     _connection = _connectionFactory
                           .CreateConnection();
