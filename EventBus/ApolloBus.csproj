@@ -6,8 +6,9 @@
     <RepositoryUrl>https://github.com/bteixeira691/ApolloBus</RepositoryUrl>
     <RepositoryType>https://github.com/bteixeira691/ApolloBus</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageIcon>ApolloBus400.png</PackageIcon>
+    <PackageIcon>128.png</PackageIcon>
     <PackageIconUrl />
+    <Version>2.2.4</Version>
 
   </PropertyGroup>
 
@@ -32,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\..\Downloads\ApolloBus400.png">
+    <None Include="..\Images\128.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
