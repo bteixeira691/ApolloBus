@@ -69,6 +69,7 @@ Use the appsettings for the configuration. You can see that in the samples.
 * [Kafka](https://kafka.apache.org/)
 * [RabbitMq](https://www.rabbitmq.com/)
 * [ServiceBus Azure](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-overview)
+* [AmazonSQS](https://aws.amazon.com/pt/sqs/)
 * [Polly](https://github.com/App-vNext/Polly)
 * [Serilog](https://serilog.net/)
 
@@ -93,12 +94,14 @@ You can check the versions here -> https://www.nuget.org/packages/ApolloBus/
 ## Roadmap
 
 - [] Retry Policy with Kafka
-- [] Retry Policy with ServiceBus Azure
-- [] Better Validation
-    - [] Kafka config
-    - [] ServiceBus Azure config
-    - [] RabbitMq config
+- [x] Retry Policy with ServiceBus Azure
+- [x] Better Validation
+    - [x] Kafka config
+    - [x] ServiceBus Azure config
+    - [x] RabbitMq config
 - [] Deadqueue if dont exist a handler
+- [] More services clients
+- [] Multiple instance of clients
 
 See the [open issues](https://github.com/bteixeira691/ApolloBus/issues) for a full list of proposed features (and known issues).
 
@@ -129,8 +132,13 @@ Don't forget to give the project a star! Thanks again!
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
-<p align="right">(<a href="#top">back to top</a>)</p>
 
+
+## Credits
+
+Logo made by -> https://carsilva.weebly.com/
+
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
