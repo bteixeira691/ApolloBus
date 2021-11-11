@@ -6,6 +6,6 @@
 
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
-    <PackageReference Include="ApolloBus" Version="1.1.4" />
+	  <PackageReference Include="ApolloBus" Version="2.2.4" />
   </ItemGroup>
 </Project>

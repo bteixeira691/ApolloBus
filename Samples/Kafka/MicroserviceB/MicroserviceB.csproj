@@ -16,7 +16,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.0.0" />
-    <PackageReference Include="ApolloBus" Version="1.1.4" />
+    <PackageReference Include="ApolloBus" Version="2.2.4" />
   </ItemGroup>
 
   <ItemGroup>
