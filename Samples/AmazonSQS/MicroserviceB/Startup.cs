@@ -1,19 +1,12 @@
-
-using Confluent.Kafka;
-using ApolloBus;
+using ApolloBus.AmazonSQS;
 using ApolloBus.InterfacesAbstraction;
-using ApolloBus.Kafka;
 using MicroserviceB.Event;
 using MicroserviceB.Handler;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Serilog;
-using ApolloBus.AmazonSQS;
 
 namespace MicroserviceB
 {
@@ -25,7 +18,7 @@ namespace MicroserviceB
             Configuration = configuration;
         }
 
-       
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {

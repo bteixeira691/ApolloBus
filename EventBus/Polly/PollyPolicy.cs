@@ -1,13 +1,10 @@
-﻿using ApolloBus.RabbitMQ.Model.Interfaces;
-using ApolloBus.Validation;
+﻿using ApolloBus.Validation;
 using Confluent.Kafka;
 using Polly;
 using Polly.Retry;
 using Serilog;
 using System;
-using System.Collections.Generic;
 using System.Net.Sockets;
-using System.Text;
 
 namespace ApolloBus.Polly
 {
